@@ -18,7 +18,7 @@ if (!NEWS_API_KEY) {
 
 const NEWS_API_URL = "https://newsapi.org/v2/everything";
 
-async function fetchArticles(query: string = "technology") {
+async function fetchArticles(query: string ) {
   try {
     const response = await axios.get(NEWS_API_URL, {
       params: {
@@ -77,12 +77,12 @@ async function scrapeArticle(url: string): Promise<string | null> {
 }
 
 // 3. Ingest pipeline
-export async function ingestArticles() {
-  console.log("Starting NewsAPI ingestion...");
+export async function ingestArticles(query: string = "technology") {
+  console.log("Starting NewsAPI ingestion...", query);
 
   const collectionName = await initCollection();
 
-  const articles = await fetchArticles();
+  const articles = await fetchArticles(query);
   console.log(`Got ${articles.length} articles from NewsAPI`);
 
   let allArticlePoints: any = [];
