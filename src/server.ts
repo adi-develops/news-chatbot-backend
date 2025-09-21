@@ -27,8 +27,8 @@ app.post("/session", async (_req: Request, res: Response) => {
     const { redis } = await import("./db/redisClient");
     await redis.rPush(`session:${sessionId}:history`, JSON.stringify({ role: "system", content: "Session started", timestamp: Date.now() }));
     await redis.expire(`session:${sessionId}:history`, 86400);
-    res.json({ sessionId });
-  } catch (err: any) {
+    res.status(201).json({ sessionId });
+      } catch (err: any) {
     console.error("/session error:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
@@ -64,8 +64,8 @@ app.get("/history/:sessionId", async (req: Request, res: Response) => {
     const { sessionId } = req.params;
     if (!sessionId) return res.status(400).json({ error: "Missing sessionId" });
     const history = await getHistory(sessionId);
-    res.json({ history });
-  } catch (err: any) {
+    res.status(200).json({ history });
+      } catch (err: any) {
     console.error("/history error:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
@@ -76,7 +76,7 @@ app.delete("/history/:sessionId", async (req: Request, res: Response) => {
     const { sessionId } = req.params;
     if (!sessionId) return res.status(400).json({ error: "Missing sessionId" });
     await clearHistory(sessionId);
-    res.json({ status: "History cleared" });
+    res.status(200).json({ status: "History cleared" });
   } catch (err: any) {
     console.error("/history delete error:", err.message);
     res.status(500).json({ error: "Internal server error" });
@@ -84,11 +84,12 @@ app.delete("/history/:sessionId", async (req: Request, res: Response) => {
 });
 
 app.post("/ingest", async (req: Request, res: Response) => {
+  req.setTimeout(300000); // 10 minutes
   try {
     const { query } = req.body;
-    await ingestArticles(query);
-    res.status(200).json({ status: "Data Ingestion finished" });
-      } catch (err: any) {
+    const { articlesIngested } = await ingestArticles(query);
+    res.status(200).json({ status: `Ingested ${articlesIngested} articles` });
+  } catch (err: any) {
     console.error("/ingest error:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }

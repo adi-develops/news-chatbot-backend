@@ -124,6 +124,7 @@ export async function ingestArticles(query: string = "technology") {
           points: allArticlePoints,
         });
   console.log("🎉 Ingestion finished");
+  return {message: "Ingestion finished", articlesIngested: articles.length}
 }
 
 if (require.main === module) {
